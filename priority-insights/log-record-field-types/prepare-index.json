@@ -1,0 +1,148 @@
+[
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "geo_point",
+    "severity": 3,
+    "text": {
+      "json_geopoint": {
+        "lat": 48.666234,
+        "lon": 9.0366981
+      },
+      "description": "Field names ending with \"_geopoint\" create a geo_point field. Allowed values can have different formats. Malformed values are ignored."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "object",
+    "severity": 3,
+    "text": {
+      "json_object": {},
+      "description": "JSON object values create an object field. Allowed values of an object field are JSON objects. Arrays of allowed values are also supported."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "object",
+    "severity": 3,
+    "text": {
+      "json_object_array": [
+        {}
+      ],
+      "description": "Arrays of one or more JSON object values create an object field."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "boolean",
+    "severity": 3,
+    "text": {
+      "json_boolean": true,
+      "description": "JSON true or JSON false create a boolean field. Allowed values of a boolean field are JSON true and JSON false. JSON strings \"true\" and \"false\" are also allowed and coerced to boolean when parsed into an existing boolean field. Arrays of allowed values are also supported. When \"true\" and \"false\" are used as values on a new field, a text field will be created."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "boolean",
+    "severity": 3,
+    "text": {
+      "json_boolean_array": [
+        true
+      ],
+      "description": "Arrays of one or more JSON false or JSON true create a boolean field."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "ip",
+    "severity": 3,
+    "text": {
+      "json_ipaddr": "203.0.113.42",
+      "description": "Field names ending with \"_ipaddr\" create an ip field. Allowed values can have different formats. Malformed values are ignored."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "date",
+    "severity": 3,
+    "text": {
+      "json_custom_timestamp": "1726591170",
+      "description": "Field names ending with \"_custom_timestamp\" create a date field. Allowed values can have different formats. Malformed values are ignored."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "text",
+    "severity": 3,
+    "text": {
+      "json_string": "This is a text.",
+      "description": "JSON string values create a text field. Allowed values of a text field are JSON strings, JSON numbers, JSON true, JSON false, JSON null. Arrays of allowed values are also supported."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "text",
+    "severity": 3,
+    "text": {
+      "json_string_array": [
+        "This is a text."
+      ],
+      "description": "Arrays of one or more JSON string values create a text field."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "text",
+    "severity": 3,
+    "text": {
+      "json_number_integer": 42,
+      "description": "JSON number (integer) values or arrays of one or more JSON number (integer) values create a text field. The numeric value can be be accessed using sub-field \"numeric\": json_number_integer.numeric."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "text",
+    "severity": 3,
+    "text": {
+      "json_number_float": 3.14,
+      "description": "JSON number (float) values or arrays of one or more JSON number (float) values create a text field. The numeric value can be be accessed using sub-field \"numeric\": json_number_float.numeric."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "sub-field",
+    "severity": 3,
+    "text": {
+      "json_object": {
+        "object": {}
+      },
+      "description": "Any JSON member in a JSON object creates a sub-field based on member's value. Object fields can be nested. Sub-fields are addressed by concatening field names from the top field to the target field separated by dots (\".\"). In this example: \"json_object.object\"."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "sub-field",
+    "severity": 3,
+    "text": {
+      "json_object.text": "This is a text.",
+      "description": "JSON member keys with dots (\".\") are interpreted as sub-field paths and can be nested to any depth. The first path element creates a top level object field. All inner path elements create nested object sub-fields. The last path element creates a nested sub-field based on the JSON value."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "none",
+    "severity": 3,
+    "text": {
+      "json_null": null,
+      "description": "JSON null or arrays of one or more JSON null do NOT create a field."
+    }
+  },
+  {
+    "applicationName": "log-record-field-types",
+    "subsystemName": "none",
+    "severity": 3,
+    "text": {
+      "json_empty_array": [],
+      "description": "Empty arrays do NOT create a field."
+    }
+  }
+]

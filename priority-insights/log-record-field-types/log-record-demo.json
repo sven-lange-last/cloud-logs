@@ -1,0 +1,293 @@
+[
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": {},
+        "description": "Works because {} is an empty object, i.e. an object value.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": [ { } ],
+        "description": "Works because an object field also allows object arrays.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": false,
+        "description": "Object mapping error because object and boolean are not compatible.",
+        "failed": true,
+        "failed_reason": "object mapping for [json_object] tried to parse field [json_object] as object, but found a concrete value"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": "This is a text.",
+        "description": "Object mapping error because object and text are not compatible.",
+        "failed": true,
+        "failed_reason": "object mapping for [json_object] tried to parse field [json_object] as object, but found a concrete value"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": 42,
+        "description": "Object mapping error because object and number (integer) are not compatible.",
+        "failed": true,
+        "failed_reason": "object mapping for [json_object] tried to parse field [json_object] as object, but found a concrete value"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object": 3.14,
+        "description": "Object mapping error because object and number (float) are not compatible.",
+        "failed": true,
+        "failed_reason": "object mapping for [json_object] tried to parse field [json_object] as object, but found a concrete value"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "object",
+      "severity": 3,
+      "text": {
+        "json_object_array": {},
+        "description": "Works because {} is an empty object, i.e. an object value.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": false,
+        "description": "Works because false is boolean value.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": [ true ],
+        "description": "Works because a boolean field also allows boolean arrays.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": "true",
+        "description": "Works because \"true\" is coerced to a boolean value. \"true\" and \"false\" are coerced to boolean when parsed into an existing boolean field. When \"true\" and \"false\" are used as values on a new field, a text field will be created.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": {},
+        "description": "Parsing error because boolean and object are not compatible.",
+        "failed": true,
+        "failed_reason": "failed to parse field [json_boolean] of type [boolean]"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": "This is a text.",
+        "description": "Parsing error because boolean and text are not compatible.",
+        "failed": true,
+        "failed_reason": "failed to parse field [json_boolean] of type [boolean]"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": 42,
+        "description": "Parsing error because boolean and number (integer) are not compatible.",
+        "failed": true,
+        "failed_reason": "failed to parse field [json_boolean] of type [boolean]"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean": 3.14,
+        "description": "Parsing error because boolean and number (integer) are not compatible.",
+        "failed": true,
+        "failed_reason": "failed to parse field [json_boolean] of type [boolean]"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "boolean",
+      "severity": 3,
+      "text": {
+        "json_boolean_array": true,
+        "description": "Works because true is a boolean value.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string": [ "This is a text." ],
+        "description": "Works because a text field also allows text arrays.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string": {},
+        "description": "Parsing error because text and object are not compatible.",
+        "failed": true,
+        "failed_reason": "failed to parse field [json_string] of type [text]"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string": false,
+        "description": "Works because false is coerced to text.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string": 42,
+        "description": "Works because a number (integer) is a text.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string": 3.14,
+        "description": "Works because a number (float) is a text.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_string_array": "This is a text.",
+        "description": "Works because this is a text field.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_number_integer": "This is a text.",
+        "description": "Works because this is a text field.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "text",
+      "severity": 3,
+      "text": {
+        "json_number_float": "This is a text.",
+        "description": "Works because this is a text field.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "sub-field",
+      "severity": 3,
+      "text": {
+        "json_object.text.new": "This is a text.",
+        "description": "Field mapping error because \"json_object.text.new\": ... is the same as \"json_object.text\": { \"new\": ... }. This would add the \"new\" sub-field to \"json_object.text\" which does not work because \"json_object.text\" is a text field - but sub-fields can only be added to object fields.",
+        "failed": true,
+        "failed_reason": "Could not dynamically add mapping for field [json_object.text.new]. Existing mapping for [json_object.text] must be of type object but found [text]."
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "sub-field",
+      "severity": 3,
+      "text": {
+        "json_object.object": "This is a text.",
+        "description": "Object mapping error because json_object.object is an object field and object and text are not compatible. \"json_object.object\": ... is the same as \"json_object\": { \"object\": ... }.",
+        "failed": true,
+        "failed_reason": "object mapping for [json_object.object] tried to parse field [json_object.object] as object, but found a concrete value"
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "sub-field",
+      "severity": 3,
+      "text": {
+        "json_object.object.new": "This is a text.",
+        "description": "Adds a new sub-field named \"new\" to \"json_object.object\" because \"json_object.object.new\": ... is the same as \"json_object.object\": { \"new\": ... }. Works because \"json_object.object\" is an object field.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "none",
+      "severity": 3,
+      "text": {
+        "json_null": {},
+        "description": "Works because the \"json_null\" field does not exist yet. Creates a new object field.",
+        "failed": false
+      }
+    },
+    {
+      "applicationName": "log-record-field-types",
+      "subsystemName": "none",
+      "severity": 3,
+      "text": {
+        "json_empty_array": [ {} ],
+        "description": "Works because the \"json_empty_array\" field does not exist yet. Creates a new object field.",
+        "failed": false
+      }
+    }
+  ]
