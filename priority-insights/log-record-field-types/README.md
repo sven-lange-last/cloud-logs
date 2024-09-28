@@ -133,7 +133,7 @@ See [Allowing dots in field names #15951](https://github.com/elastic/elasticsear
 
 Log records may contain field names with dots without being path expressions describing nested objects. Example: [Kubernetes Recommended Labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/) or [Kubernetes Well-Known Labels, Annotations and Taints](https://kubernetes.io/docs/reference/labels-annotations-taints/) contain dots (`.`). Widely used labels are `app.kubernetes.io/name`, `app.kubernetes.io/version`, `kubernetes.io/os`. Log collectors may add these labels and their values to log records when tailing container logs in a Kubernetes cluster.
 
-When Priority insights processes a log record with field `"app.kubernetes.io/name": "test"`, it will be added to the index as `"app": { "kubernetes": { "io/name": "test" } }` - i.e. `boolean` fields `app` and `kubernetes` as well as `text` field `io/name`. Most users would have expected a single `text` field named `app.kubernetes.io/name`.
+When Priority insights processes a log record with field `"app.kubernetes.io/name": "test"`, it will be added to the index as `"app": { "kubernetes": { "io/name": "test" } }` - i.e. `object` fields `app` and `kubernetes` as well as `text` field `io/name`. Most users would have expected a single `text` field named `app.kubernetes.io/name`.
 
 I'm going to discuss below why field names with dots can cause mapping exceptions in Priority insights.
 
@@ -176,6 +176,15 @@ Example:
 * Field name `json_string.new` is a path expression and stands for a nested object. So the field is expanded to `"json_string": { "new": "This is a text." }`.
 * Priority insights detects that a field named `json_string` already exists in the daily index an tries to add `new` as a sub-field. This fails because only `object` fields can have sub-fields but the existing `json_string` field has type `text`.
 * Priority insights cannot index the log record with the given `json_string.new` field and value.
+
+In sections [What about dots in field names?](#what-about-dots-in-field-names) and [Challenges with dots in field names](#challenges-with-dots-in-field-names), I explained that field names with dots (`.`) will be interpreted as path expressions and will be expanded as nested objects. Log records may contain field names with dots that were never meant to be interpreted as path expressions. This can lead to a special case of a field mapping conflict with nested fields that is hard to spot.
+
+Example:
+
+* The current daily index contains a field named `kubernetes.labels.app` with type `text`.<br/>The IBM Cloud Logs Agent will add such a field to log records that were emitted by a container from a Kubernetes pod that has a label named `app`. Many Kubernetes workloads still use this label name because it was a de-facto standard label in the past and is still used in many Kubernetes examples. See [Kubernetes docs: Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels).
+* Priority insights processes a new log record with field `kubernetes.labels.app.kubernetes.io/name` with type `text`.<br/>The IBM Cloud Logs Agent will add such a field to log records that were emitted by a container from a Kubernetes pod that has a label named `app.kubernetes.io/name`. This is a [well-known](https://kubernetes.io/docs/reference/labels-annotations-taints/#app-kubernetes-io-name) and [recommended](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels) Kubernetes label.
+* Priority insights detects that a field named `kubernetes.labels.app` already exists in the daily index an tries to add `kubernetes` as a sub-field. This fails because only `object` fields can have sub-fields but the existing `kubernetes.labels.app` field has type `text`.
+* Priority insights cannot index the log record with the given `kubernetes.labels.app.kubernetes.io/name` field and value.
 
 When Priority insights is not able to index a field from a new log record because of malformed values or sub-field conflicts, this is a mapping exception.
 
@@ -222,11 +231,17 @@ On the `Explore Logs` - `Logs` page, select `Priority Insights`. The `Logs` tab 
 
 On the `Explore Logs` - `Logs` page, select `Priority Insights` and the `Logs` tab. If the result list contains log records affected by mapping exceptions, you can add a result column named `!` (exclamation mark) which displays the contents of the `coralogix.failed_reason` field. For log records affected by mapping exceptions, the `!` columns will contain an indicator symbol that looks like a filled crossed-out circle. If you hover the mouse pointer over the indicator symbol, Cloud Logs will display the mapping exception message.
 
+Select `Columns` to add `!` (exclamation mark) column.
+
 ![Select `Columns` to add `!` (exclamation mark) column](./mapping-exceptions-manage-columns.png)
+
+Move the `!` (exclamation mark) column to `In Use` list.
 
 ![Move the `!` (exclamation mark) column to `In Use` list](./mapping-exceptions-manage-columns-exclamation-mark.png)
 
-![`!` (exclamation mark) column for a log record with mapping exception](./mapping-exceptions-exclamation-mark-column.png)
+Sample mapping exception message for a log record in `!` (exclamation mark) column.
+
+![Sample mapping exception message for a log record in `!` (exclamation mark) column](./mapping-exceptions-exclamation-mark-column.png)
 
 Following DataPrime query can be used in Priority Insights to identify which field mapping exceptions occur how often. IBM Cloud Logs will display a result table. Resize the `mapping_exception` column to see the full exception messages.
 
