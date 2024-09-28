@@ -294,6 +294,20 @@ Mapping exception message | Explanation
 `object mapping for [<field-name>] tried to parse field [<field-name>] as object, but found a concrete value` | The log record contains a field `<field-name>`. The daily Priority insights index already contains an `object` field with that name. The field value in the log record is not an object.
 `Could not dynamically add mapping for field [<field-name>.<sub-field-name>]. Existing mapping for [<field-name>] must be of type object but found [<type>].` | The log record contains a field `<field-name>.<sub-field-name>`. The daily Priority insights index already contains a field with name `<field-name>` which is not of type `object`. Said index does NOT contain a field with name `<field-name>.<sub-field-name>` yet. Priority insights wants to add field `<sub-field-name>` as a sub-field to the known field `<field-name>` which does not work because sub-fields can only be added to `object` fields.<br/>This message occurs most often if `<field-name>` is already known as `text` field.
 
+## Mapping exceptions can vary from day to day
+
+As mentioned before, Priority insights maintains a separate daily index for each Cloud Logs service instance. Every day a new daily index is created. After creation, the new daily index does not contain any field mappings. Every day, the fields are learnt anew and new field mappings are added. Daily indices are independent of each other and a particular field name can have a different type every day.
+
+Mapping exceptions are caused by fields that have different types in different log records. The log record that has the first occurrence of a particular field `F` on a day determines the field type `T1` on this day. Other log records on that day may contain field `F` with type `T2`. On that day, log records where field `F` has type `T2` will be affected by a mapping exception. The next day, the first log record with field `F` could be one where field `F` has the type `T2`. On that day, log records where field `F` has type `T1` will be affected by a mapping exception. Mapping exceptions related to a particular field can vary from day to day.
+
+Example:
+
+* Some log records contain a field named `message` with values that Priority insights classifies as `text`.
+* Other log records contain a field named `message` with object values, i.e. the `message` field has sub-fields.
+* Priority insights stores known fields and their types in the daily index. Whether `message` is a `text` field or an `object` field in the daily index depends on which log record is processed first on a day:
+* If `message` is indexed as a `text` field, log records that contain `message` as an `object` field will have following mapping exception message: `Could not dynamically add mapping for field [message...]. Existing mapping for [message] must be of type object but found [text].`.
+* If `message` is indexed as a `object` field, log records that contain `message` as an `text` field will have following mapping exception message: `object mapping for [message] tried to parse field [message] as object, but found a concrete value`.
+
 ## How do I resolve mapping exceptions?
 
 The generic answer is to ensure that all values of a particular log record field always have the same type in Priority insights. Once Priority insights has determined the type of a field and added it to a daily index, all following log records must only have allowed values for that type.
