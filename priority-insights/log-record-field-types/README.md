@@ -312,13 +312,51 @@ Example:
 
 The generic answer is to ensure that all values of a particular log record field always have the same type in Priority insights. Once Priority insights has determined the type of a field and added it to a daily index, all following log records must only have allowed values for that type.
 
-This can be done at different place and with different ways:
+This can be done at different places with different approaches:
 
-* Curate log messages / records emitted by applications such that a particular field has always the same type.
+* Curate log messages / records emitted by applications such that a particular field always has the same type.
 * Use filters in the IBM Cloud Logs Agent to transform field names or field values.
 * Use parsing rules in IBM Cloud Logs to transform field names or field values.
 
 This article focuses on parsing rules in IBM Cloud Logs.
+
+What it is important: A log record may be affected by multiple mapping exceptions - but only one mapping exception message is available on an affected log record. After a mapping exception has been resolved, additional mapping exception messages may become visible. Resolving mapping exceptions is an iterative process.
+
+## Use parsing rules in IBM Cloud Logs to resolve mapping exceptions
+
+There are different techniques to resolve mapping exceptions with parsing rules in IBM Cloud Logs:
+
+1. Change log record field name: Use a `Replace` parsing rule to detect a field with a value that has a conflicting type and rename the field.
+2. Sanitize field names with dots: Use a `Replace` parsing rule to detect a field name with dots (`.`) and replace dots with `_`.
+3. Hide complex nested field object structures: Use a `Stringify JSON field` parsing rule to detect a field name with a complex JSON object value and turn the value into escaped JSON.
+
+The following sections describe the techniques in more detail.
+
+### Regular expressions in parsing rules
+
+[Regular expressions](https://en.wikipedia.org/wiki/Regular_expression) play a central role in parsing rules. They are used to match, capture, and replace log record content. Parsing rules and regular expressions can operate on the full log record content (`Text`) or on detected fields. When changing field names, you should always work on full log record content.
+
+Regular expressions in parsing rules work on raw log record content. Mapping exceptions can only occur if log record content is in [JSON](https://www.json.org/) format - otherwise Priority Insights won't detect fields and field types. For this reason, regular expressions in parsing rules for resolving mapping exceptions will always operate on content in JSON format. Knowledge of the JSON format can be used to "detect" field types in regular expressions. Examples: An JSON object value always starts with the `{` character, a JSON string value always starts with the `"` character, and a JSON number value always starts with a digit or the `-` character.
+
+Always test regular expression matchers and replacement strings with a couple of sample raw log records. Use the approaches from section [How can I determine whether log records are affected by mapping exceptions?](#how-can-i-determine-whether-log-records-are-affected-by-mapping-exceptions) to identify sample log records for testing.
+
+Use the following procedure to obtain a raw log record. On the `Explore Logs` - `Logs` page, the result list has a `#` column with consecutive number. Hover the mouse pointer over the number of the log record for which you want to obtain the raw content until it turns into three dots (`...`). Click the three dots to open a context menu and select `Open Info Panel`. In this panel, select option `RAW` and use the `Copy to clipboard` button.
+
+Creating a proper regular expression can be challenging. You can use tools like https://regex101.com/ to create, test, and debug regular expressions as well as replacement strings.
+
+After a parsing rule has been set up, check whether new log records look as expected and whether they are no longer affected by mapping exceptions.
+
+### Technique 1: Change log record field name
+
+TODO
+
+### Technique 2: Sanitize field names with dots
+
+TODO
+
+### Technique 3: Hide complex nested field object structures
+
+TODO
 
 ## Use parsing rules to resolve mapping exceptions by changing field names
 
