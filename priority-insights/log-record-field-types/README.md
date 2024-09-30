@@ -326,7 +326,11 @@ This can be done at different places with different approaches:
 
 This article focuses on parsing rules in IBM Cloud Logs.
 
-What it is important: A log record may be affected by multiple mapping exceptions - but only one mapping exception message is available on an affected log record. After a mapping exception has been resolved, additional mapping exception messages may become visible. Resolving mapping exceptions is an iterative process.
+What it is important:
+
+* A log record may be affected by multiple mapping exceptions - but only one mapping exception message is available on an affected log record. After a mapping exception has been resolved, additional mapping exception messages may become visible. Resolving mapping exceptions is an iterative process.
+* The approaches listed above only affect new log records. When you add a parsing rule to IBM Cloud Logs, it won't change log records that are already stored in Priority insights or Store and search. Log records already stored in Priority insights that were affected by a mapping exception before a parsing rule was added will still be affected by the same mapping exception after the parsing rule was added.
+* The approaches listed above cannot change existing field mappings in the current daily Priority insights index. The current daily index may still contain undesired field mappings so that more log records to be stored in this index will be affected by mapping exceptions. You may have to wait for a new daily index to see the desired effect of the approaches listed above.<br/>Example: If you rename an `object` field to resolve a conflict with a `text` field, this field may still be an `object` field in existing indices. A new daily index is needed to reliably turn it into a `text` field.
 
 ## Use parsing rules in IBM Cloud Logs to resolve mapping exceptions
 
