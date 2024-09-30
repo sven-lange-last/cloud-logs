@@ -2,6 +2,12 @@
 [Copyright © 2024 Sven Lange-Last]: #
 # Log Record Field Types and Mapping Exceptions in IBM Cloud Logs Priority Insights
 
+TODO: Should split this article up into 3 articles:
+
+1. Log record field types
+2. Mapping exceptions and how to resolve
+3. Tutorial with log record examples
+
 The Priority insights feature in IBM Cloud Logs parses log records into typed fields. Mapping exceptions in Priority insights occur when a log record field has a value that does not match the orginally determined type. In such a case, Priority insights only stores the information of the full log record as text but not the individual fields. At first glance it looks like log records are missing. They are there, but are not found by data field-based filters and queries.
 
 This article explains:
