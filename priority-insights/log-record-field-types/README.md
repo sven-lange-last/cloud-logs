@@ -183,7 +183,7 @@ Example:
 
 * The current daily index contains a field named `kubernetes.labels.app` with type `text`.<br/>The IBM Cloud Logs Agent will add such a field to log records that were emitted by a container from a Kubernetes pod that has a label named `app`. Many Kubernetes workloads still use this label name because it was a de-facto standard label in the past and is still used in many Kubernetes examples. See [Kubernetes docs: Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels).
 * Priority insights processes a new log record with field `kubernetes.labels.app.kubernetes.io/name` with type `text`.<br/>The IBM Cloud Logs Agent will add such a field to log records that were emitted by a container from a Kubernetes pod that has a label named `app.kubernetes.io/name`. This is a [well-known](https://kubernetes.io/docs/reference/labels-annotations-taints/#app-kubernetes-io-name) and [recommended](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels) Kubernetes label.
-* Priority insights detects that a field named `kubernetes.labels.app` already exists in the daily index an tries to add `kubernetes` as a sub-field. This fails because only `object` fields can have sub-fields but the existing `kubernetes.labels.app` field has type `text`.
+* Priority insights detects that a field named `kubernetes.labels.app` already exists in the daily index and tries to add `kubernetes` as a sub-field. This fails because only `object` fields can have sub-fields but the existing `kubernetes.labels.app` field has type `text`.
 * Priority insights cannot index the log record with the given `kubernetes.labels.app.kubernetes.io/name` field and value.
 
 When Priority insights is not able to index a field from a new log record because of malformed values or sub-field conflicts, this is a mapping exception.
@@ -328,7 +328,7 @@ There are different techniques to resolve mapping exceptions with parsing rules 
 
 1. Change log record field name: Use a `Replace` parsing rule to detect a field with a value that has a conflicting type and rename the field.
 2. Sanitize field names with dots: Use a `Replace` parsing rule to detect a field name with dots (`.`) and replace dots with `_`.
-3. Hide complex nested field object structures: Use a `Stringify JSON field` parsing rule to detect a field name with a complex JSON object value and turn the value into escaped JSON.
+3. Hide complex nested field object structures: Use a `Stringify JSON field` parsing rule to rename a field with a complex JSON object value and turn the value into escaped JSON.
 
 The following sections describe the techniques in more detail.
 
@@ -348,43 +348,83 @@ After a parsing rule has been set up, check whether new log records look as expe
 
 ### Technique 1: Change log record field name
 
-TODO
+Use a `Replace` parsing rule to detect a field with a value that has a conflicting type and rename the field. The regular expression used by the parsing rule needs to match the field name AND values with conflicting type so that the field name is only changed on the proper set of log records.
+
+Problem: **`field` has JSON object and other JSON values**
+
+* Solution: Rename from `field` to `field_obj` for JSON object values.
+* Description: JSON object values always start with the `{` character. Capture field name as well as following content using `(...)` to build replacement string.
+* Regular expression: `"(field)"(\s*:\s*{)`
+* Replacement string: `"$1_obj"$2`
+* Sample logs and results:
+  * `"field": {}` ⇨ `"field_obj": {}`
+  * `"field" : ""` ⇨ `"field" : ""`
+  * `"field":1` ⇨ `"field":1`
+* Regex101 Link: https://regex101.com/r/kZ4kjw/2
+
+Problem: **`field` has JSON string and other JSON values**
+
+* Solution: Rename from `field` to `field_text` for JSON string values.
+* Description: JSON string values always start with the `"` character.
+* Regular expression: `"(field)"(\s*:\s*")`
+* Replacement string: `"$1_text"$2`
+* Sample logs and results:
+  * `"field": {}` ⇨ `"field": {}`
+  * `"field" : ""` ⇨ `"field_text" : ""`
+  * `"field":1` ⇨ `"field":1`
+* Regex101 Link: https://regex101.com/r/vhyYNy/1
 
 ### Technique 2: Sanitize field names with dots
 
-TODO
+Use a `Replace` parsing rule to detect a field name with dots (`.`) and replace dots with `_` to prevent interpretation as path expression and expansion as nested object in Priority insights. The regular expression used by the parsing rule needs to match fields to avoid replacement of field values.
+
+Problem: **Field name contains dots (`.`)**
+
+* Solution: Replace dots (`.`) in field names with `_`.
+* Description: JSON field names are enclosed in `"` and follow after `{` (first name / value pair) or `,` (second to n-th name / value pair). Field names are followed by `:`. Capture characters before and after field name to build replacement string. Important: Dots (`.`) in regular expressions need to be escaped - otherwise they will match any single character.
+* Regular expression: `([{,]\s*)"field\.with\.dots"(\s*:\s*)`
+* Replacement string: `$1"field_with_dots"$2`
+* Sample log: `{ "field.with.dots": "", "field-with-dots" : "field.with.dots", "field.with.dots":"" }`
+* Sample result: `{ "field_with_dots": "", "field-with-dots" : "field.with.dots", "field_with_dots":"" }`
+* Regex101 Link: https://regex101.com/r/dzOrAF/1
+
+Problem: **Kubernetes labels prefixed with `app.kubernetes.io/` in field names potentially cause mapping exceptions**
+
+* Solution: Replace Kube label prefix `app.kubernetes.io/` with `app_kubernetes_io_` in field names.
+* Description: JSON fields `kubernetes.labels` or `labels` contain a comma separated list of Kubernetes labels as name / value pairs. These field names may contain `app.kubernetes.io/` as prefix. Capture characters before and after field name prefix to build replacement string.
+* Regular expression: `([{,]\s*")app\.kubernetes\.io\/([^"]+"\s*:\s*)`
+* Replacement string: `$1app_kubernetes_io_$2`
+* Sample log: `{ "kubernetes": { "labels": { "app.kubernetes.io/name": "name", "app.kubernetes.io/version": "1.2.3", "no-match-field": "app.kubernetes.io/name" } } }`
+* Sample result: `{ "kubernetes": { "labels": { "app_kubernetes_io_name": "name", "app_kubernetes_io_version": "1.2.3", "no-match-field": "app.kubernetes.io/name" } } }`
+* Regex101 Link: https://regex101.com/r/dyGEZI/1
 
 ### Technique 3: Hide complex nested field object structures
 
-TODO
+Use a `Stringify JSON field` parsing rule to rename a field with a complex JSON object value and turn the value into escaped JSON. Priority insights only parses values in JSON format into named fields with content but not escaped JSON. With the parsing rule, the transformed field is no longer an `object` field but a `text` field. Priority insights will no longer parse the former complex JSON object value into nested fields. Content of the transformed field does not work well in filters but can still be queried.
 
-## Use parsing rules to resolve mapping exceptions by changing field names
+This approach is useful for complex log records in JSON format where most of the nested fields will rarely be used in filters or field searches.
 
-You can use parsing rules in IBM Cloud Logs to resolve mapping exceptions. Such parsing rules change the name of a log record field whenever a log record contains an unsupported value for that field. Field naming conventions can be useful to build a strategy.
+There are standard log formats based on JSON with standard fields whose values ​​can be set freely. For such free-use fields, there is a high chance that different applications emitting logs in such a format use the same nested field names below free-use fields but use different value types. This will cause mapping exceptions in Priority insights.
+
+Example: IBM Cloud Activity Tracker [events](https://cloud.ibm.com/docs/atracker?topic=atracker-event) have [requestData](https://cloud.ibm.com/docs/atracker?topic=atracker-event#requestData) and [responseData](https://cloud.ibm.com/docs/atracker?topic=atracker-event#responseData) fields that have JSON object values. Applications need to emit events whenever their API is invoked and said fields are supposed to contain requests to the API as well as the response from the API. Different applications can have similar but different API requests and responses leading to mapping exceptions in Priority insights.
+
+Mapping exceptions related to standard log formats based on JSON can also occur when application owners decide that a required field type or nested fields do not work for the application and they vary field types and field structure.
+
+Problem: **Different fields in complex nested log record field structure cause mapping exceptions**
+
+* Solution: Transform complex JSON object values rarely used in field searches into escape JSON.
+* Description: With `Stringify JSON field` parsing rules, fields with values in JSON format can be renamed and turned into escaped JSON format that is no longer parsed into named fields by Priority insights.
+* Source field: Select the field that you want to transform.
+* Delete the source field - don't keep it.
+* Destination field:
+  * The destination field should be named differently than the source field - in particular, if you use a rule matcher that applies the parsing rule only to a subset of log records. The destination field will be a `text` field. So you may want to append `Text` or `_text` to the original field name.
+  * The parsing rule editor may recognize that the specified destination field is not known yet. It will show `Add item "..."` below the destination field name input field. Click on `Add item "..."` to confirm the new field.
+  * Example: If the source field is named `requestData`, you may use `requestDataText` as destination field name.
 
 Example:
 
-* Some log records contain a field named `message` with values that Priority insights classifies as `text`.
-* Other log records contain a field named `message` with object values, i.e. the `message` field has sub-fields.
-* Priority insights stores known fields and their types in the daily index. Whether `message` is a `text` field or an `object` field in the daily index depends on which log record is processed first on a day.
-* If `message` is indexed as a `text` field, log records that contain `message` as an `object` field will have following mapping exception message: `Could not dynamically add mapping for field [message...]. Existing mapping for [message] must be of type object but found [text].`.
-* If `message` is indexed as a `object` field, log records that contain `message` as an `text` field will have following mapping exception message: `object mapping for [message] tried to parse field [message] as object, but found a concrete value`.
-* When creating a parsing rule, you need to decide whether you want to keep `message` as a `text` field or as an `object` field.
-* If you want to keep `message` as a `text` field, rename it to `message_obj` whenever it has an object value.
-* If you want to keep `message` as a `object` field, rename it to `message_text` whenever it has an text value.
-
-Create a [`Replace` parsing rule in IBM Cloud Logs](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-parse-replace-rule) to change field names based on detected values. Such parsing rules use [regular expressions](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-parse-rules-regex) to match log record content and replace it with something different.
-
-If you want to rename the field `message` to `message_obj` whenever it has an object value, use the following `Replace` parsing rule:
-
-* Source field: `Text`
-* Destination field: `Text`
-* Regular expression: `"message"\s*:\s*{`
-* Replacement String: `"message_obj":{`
-
-How does it work?
-
-* TODO
+* Transform the top level `.an` field in `{ "an": {"object":{"nested:"{"in":{"an":"object"}}}} }` and rename it to `a_text`.
+* Result: `{ "a_text": "{\"object\":{\"nested:\"{\"in\":{\"an\":\"object\"}}}}" }`
 
 ## TODO
 
