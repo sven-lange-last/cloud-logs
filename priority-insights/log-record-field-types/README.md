@@ -455,3 +455,16 @@ curl --location "https://${LOGS_INGRESS_ENDPOINT}/logs/v1/singles" \
   --header "Authorization: Bearer ${IAM_BEARER_TOKEN}" \
   --data '@log-record-demo.json'
 ```
+
+For fields that are not indexed... Can you please check the following? Are any of the fields you are using in queries not indexed?
+
+On the `Explore Logs` - `Logs` page, select `Priority Insights` and the `Logs` tab. Open `Settings` on the result list header. Select to show mapping errors under `Annotations`. With that annotation option, all log record fields in the result list that have no mapping in the daily Priority insights index will be marked with a red exclamation mark indicator symbol. If you hover the mouse pointer over the indicator symbol, Cloud Logs will display a message.
+
+There are two main reasons why a field is not indexed:
+
+1. The field is only contained in log records that have a mapping exception. The procedure above should help you with identifying these log records.
+2. You reached the daily field limit of your Cloud Logs service instance. Use the procedure below...
+
+Open the `Usage` - `Mapping stats` page. Check the `Used keys today` statistic. Do you reach the index limit?
+
+Unfortunately, this only allows you to check for the current day... but should still be meaningful unless most of the new fields are ingested in your evening or your logs vary a lot from day to day.
