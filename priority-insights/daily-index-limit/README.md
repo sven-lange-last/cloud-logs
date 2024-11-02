@@ -4,7 +4,7 @@
 
 The **Priority insights** feature in IBM Cloud Logs parses log records into typed fields and stores them in an index to provide short latency and very fast queries. In order to protect the service, **Priority insights** limits the number of fields that can be stored in the daily index of an IBM Cloud Logs service instance.
 
-When you reach the index field limit, new fields in log records are no longer indexed. When you use field-based filters or queries in **Priority insights** on the **Logs** page on such fields, no log records will be returned. In such a case, you may have the impression that log records are missing.
+When you reach the index field limit, new fields in log records are no longer indexed. When you use filters or queries in **Priority insights** on the **Logs** page on such fields, no log records will be returned. In such a case, you may have the impression that log records are missing.
 
 This article explains:
 
@@ -34,7 +34,7 @@ The result of parsing rules and parsing: The log record is indexed (stored) in *
 
 **Priority insights** keeps track of all known fields in its index. When a log record is processed, **Priority insights** checks whether the field names in the log record are already known. For an unknown field, a field mapping is added to the index that determines the field type plus other instructions how to index the field.
 
-After unknown fields have been added to the index, field values from the log record are indexed for fast field-based search. In addition, the full log record is stored for full-text search.
+After unknown fields have been added to the index, field values from the log record are indexed for fast field-based and full-text search. In addition, the full log record is stored.
 
 ## Label and metadata fields
 
@@ -45,14 +45,31 @@ Log records in IBM Cloud Logs have label and metadata fields:
 
 Label and metadata fields are received by IBM Cloud Logs together with the log record data or are populated by IBM Cloud Logs. All label and metadata fields are known fields in the **Priority insights** index. IBM Cloud Logs users can not add label and metadata fields to the index or remove them.
 
-## Field-based search
+See following pages in IBM Cloud Logs documentation:
 
-You can use field-based filters and queries in **Priority insights** to search log record fields:
+* [Metadata fields](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-metadata)
+* [Sending logs by using the API](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-send-logs-api)
+* [DataPrime reference: Expressions](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-dataprime-ref#expressions)
+
+## Full-text and field-based search
+
+If you don't restrict queries in **Priority insights** to a field, the search will be performed on all indexed log record fields:
+
+* Lucene: Don't prefix a query term with `<field>:` to perform a search on all indexed log record fields - including log record label and metadata fields.
+* DataPrime: Use a query like `source logs | filter $d ~~ 'stored'` to perform a search on all indexed log record **data** fields. Searching log record data, label, and metadata fields at the same time requires a more complex query.
+
+You can use field-based filters and queries in **Priority insights** to search indexed log record fields:
 
 1. Filters: On the **Filter** pane, you can select field values from a list of detected values. Only log records that match the selected field values will be returned. By default, the `Application`, `Subsystem`, and `Severity` fields are available for filtering. Other fields detected in log records can be added to define filters.
-2. Queries: Lucene and DataPrime queries can be used to search specified fields instead of the full log record.
+2. Queries: Lucene and DataPrime queries can be used to search only specified indexed fields.
    * Lucene: Use the `<field>:<query term>` syntax to apply the specified query term only to the specified field.
    * DataPrime: Use field accessors `$d.<data field>`, `$l.<label field`, or `$m.<metadata field>` to work on the specified field.
+
+See following pages in IBM Cloud Logs documentation:
+
+* [Filtering log data](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-query-data-filter)
+* [Querying data by using Lucene](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-query-data-lucene)
+* [DataPrime reference](https://cloud.ibm.com/docs/cloud-logs?topic=cloud-logs-dataprime-ref)
 
 ## Daily indices
 
@@ -66,7 +83,8 @@ In order to protect the service, **Priority insights** limits the number of fiel
 
 Once the daily index field limit is reached, the following will happen when **Priority insights** processes log records:
 
-* Unknown fields are no longer added to the daily index and their field values are not indexed. Such fields and their values are not lost because **Priority insights** always stores the full log record. Field-based search for such fields won't work - only full-text search on their values.
+* Unknown fields are no longer added to the daily index and their field values are not indexed. Such fields and their values are not lost because **Priority insights** always stores the full log record.
+  Such fields will NOT be searched - neither in full-text nor in field-based search.
 * Field values of fields that are already known in the daily index will be indexed as usual.
 
 Example:
@@ -75,13 +93,20 @@ Example:
 * Field `known` already has a field mapping in the daily index. It is known. Its value `indexed` is indexed.
 * Field `unknown` has no field mapping in the daily index yet. It is unknown. **Priority insights** cannot add a field mapping because the daily index limit is reached. Its value `stored` is not indexed.
 * **Priority insights**  stores the full log record.
-* Lucene query `known:indexed` / DataPrime query `source logs | $d.known ~ 'indexed'` returns the log record.
-* Lucene query `unknown:stored` / DataPrime query `source logs | $d.unknown ~ 'stored'` does NOT return the log record because field `unknown` has no field mapping in the daily index and value `stored` is not indexed for field `unknown`.
-* Lucene query `stored` / DataPrime query `source logs | filter $d ~~ 'stored'` returns the log record because the full log record is stored.
+* Following queries will return the log record:
+  * Lucene query `indexed`.
+  * Lucene query `known:indexed`.
+  * DataPrime query `source logs | filter $d ~~ 'indexed'`.
+  * DataPrime query `source logs | filter $d.known ~ 'indexed'`.
+* Following queries will NOT return the log record because field `unknown` has no field mapping in the daily index and value `stored` is not indexed for field `unknown`:
+  * Lucene query `stored`.
+  * Lucene query `unknown:stored`.
+  * DataPrime query `source logs | filter $d ~~ 'stored'`.
+  * DataPrime query `source logs | filter $d.unknown ~ 'stored'`.
 
 As mentioned, a new daily index automatically contains the known label and metadata fields. They will be counted towards the daily index limit.
 
-Since new fields are added to the index in the order in which they appear and no more fields are added after the limit is reached, the set of fields in the index and thus, the indexed field values, can differ day by day. For this reason, field-based searches for a field may work one day but may not work the next.
+Since new fields are added to the index in the order in which they appear and no more fields are added after the limit is reached, the set of fields in the index and thus, the indexed field values, can differ day by day. For this reason, searches for a field may work one day but may not work the next.
 
 ## Check daily index usage
 
@@ -91,7 +116,7 @@ You can only check usage for the current day, not for previous days. Typically, 
 
 ## Determine whether a field is in the daily index
 
-On the **Explore Logs** - **Logs** page, select **Priority Insights** and the **Logs** tab. Open **Settings** on the result list header. Select to show mapping errors under `Annotations`. With that annotation option, all log record fields in the result list that have no mapping in the daily **Priority insights** index will be marked with a red exclamation mark indicator symbol. If you hover the mouse pointer over the indicator symbol, IBM Cloud Logs will display a message.
+On the **Explore Logs** - **Logs** page, select **Priority Insights** and the **Logs** tab. Open **Settings** on the result list header. Select to show mapping errors under `Annotations`. With that annotation option, all log record fields of the selected log record in the result list that have no mapping in the daily **Priority insights** index will be marked with a red exclamation mark indicator symbol. If you hover the mouse pointer over the indicator symbol, IBM Cloud Logs will display a message.
 
 There are two main reasons why a field is not indexed:
 
