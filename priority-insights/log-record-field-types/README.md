@@ -19,7 +19,7 @@ This article explains:
 
 The Priority insights feature is based on the [OpenSearch Project](https://opensearch.org/). If you already know OpenSearch, the concepts will sound familiar to you.
 
-What is important to know: The Store and search feature in IBM Cloud Logs works differently than Priority insights. Store and search uses dynamic types and is not affected by mapping exceptions. If you miss log records in Priority insights queries, use the same query in "All Logs" on the "Logs" page or submit it on the "Archive query" page. The Store and search feature requires that you connect an IBM Cloud Object Storage (COS) bucket to your IBM Cloud Logs service instance.
+What is important to know: The Store and search feature in IBM Cloud Logs works differently than Priority insights. Store and search uses dynamic types and is not affected by mapping exceptions. If you miss log records in Priority insights queries, use the same query in "All Logs" on the "Logs" page. The Store and search feature requires that you connect an IBM Cloud Object Storage (COS) bucket to your IBM Cloud Logs service instance.
 
 ## Parsing log records into fields
 
@@ -78,8 +78,10 @@ Field type | Lucene query type | Example field | Matching example query |
 
 The main difference between `text` and `keyword` fields in Priority insights:
 
-* `text` field values are analyzed and stored as tokens. When searching text fields, you can search for tokens in any order. Example: Lucene query `json_string:a text this is` matches a log record that contains `"json_string": "This is a text."`.
-* `keyword` field values are not analyzed but only normalized to lower case and leading / trailing whitespace is removed. When searching keyword fields, you can only search exact matches. Examples: Lucene query `json_string.keyword:"this is a text."` matches a log record that contains `"json_string": "This is a text."`. Lucene queries `json_string.keyword:"this is a text"` (`.` missing at the end), `json_string.keyword:this is a text.` (without enclosing search term in `"`) and `json_string:a text this is` do not match the log record.
+* `text` field values are analyzed and stored as tokens. When searching text fields, you can search for tokens in any order. Example: Lucene query `json_string:(a text this is)` matches a log record that contains `"json_string": "This is a text."`.
+* TODO: `keyword` field values are not analyzed but only normalized to lower case and leading / trailing whitespace is removed. When searching keyword fields, you can only search exact matches. Examples: Lucene query `json_string.keyword:"this is a text."` matches a log record that contains `"json_string": "This is a text."`. Lucene queries `json_string.keyword:"this is a text"` (`.` missing at the end), `json_string.keyword:this is a text.` (without enclosing search term in `"`) and `json_string:a text this is` do not match the log record.
+
+TODO: Based on your previous comment, I need to replace example query `json_string.keyword:this is a text.` with `json_string.keyword:(this is a text.)` and `json_string:a text this is` with `json_string:(a text this is)` and check whether they match. I think neither matches.
 
 More details can be found here:
 
@@ -129,11 +131,13 @@ In Priority insights, sub-fields of an `object` field can also have type `object
 
 As mentioned above, Priority insights supports nested `object` fields and path expressions with dots (`.`) are used to reference nested fields in queries. But what if log records contain fields with dots? Example: `"an.object.nested.in.an": "object"`.
 
-Imagine Priority insights received a log record with following content (Spoiler: It wouldn't work.): `{ "an.object.nested.in.an": "object","an": {"object": {"nested:" {"in": {"an": "object"} } } } }`. In queries, the both fields would be referenced as `an.object.nested.in.an`. This is obviously a problem. 
+Imagine Priority insights received a log record with following content (Spoiler: It wouldn't work.): `{ "an.object.nested.in.an": "object", "an": {"object": {"nested:" {"in": {"an": "object"} } } } }`. In queries, both fields would be referenced as `an.object.nested.in.an`. This is obviously a problem. 
 
 In order to avoid said problem, Priority insights interpretes field names containing dots as path expressions. Such field names are expanded as nested objects. Example: `"an.object.nested.in.an": "object"` is interpreted as `"an": {"object": {"nested:" {"in": {"an": "object"} } } }`. With this approach, path expressions in field names have the same meaning when ingesting and when querying.
 
 See [Allowing dots in field names #15951](https://github.com/elastic/elasticsearch/issues/15951) for details.
+
+(For completeness: The Store and search feature in IBM Cloud Logs works differently than Priority insights. It will NOT expand field names containing dots as nested objects.)
 
 ## Challenges with dots in field names
 
