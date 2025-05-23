@@ -1,5 +1,5 @@
 [SPDX-License-Identifier: CC-BY-SA-4.0]: #
-[Copyright © 2024 Sven Lange-Last]: #
+[Copyright © 2024, 2025 Sven Lange-Last]: #
 # Log Record Field Types and Mapping Exceptions in IBM Cloud Logs Priority Insights
 
 TODO: Should split this article up into 3 articles:
