@@ -1,5 +1,5 @@
 [SPDX-License-Identifier: CC-BY-SA-4.0]: #
-[Copyright © 2024 Sven Lange-Last]: #
+[Copyright © 2024, 2025 Sven Lange-Last]: #
 # IBM Cloud Logs
 
 [IBM Cloud Logs](https://www.ibm.com/products/cloud-logs) is a service in the IBM Cloud that allows you to store, query, and analyse your logs including [audit events](https://cloud.ibm.com/docs/atracker?topic=atracker-cloud_services_atracker) and [platform logs](https://cloud.ibm.com/docs/logs-router?topic=logs-router-cloud_services) created by IBM Cloud services or the IBM Cloud platform.
@@ -30,7 +30,7 @@ Also see SPDX license page: [Creative Commons Attribution Share Alike 4.0 Intern
 
 ## Copyright
 
-Copyright © 2024 Sven Lange-Last
+Copyright © 2024, 2025 Sven Lange-Last
 
 Unless otherwise stated, said copyright applies to all materials in this repository: GitHub files, issues, pull requests, wiki pages and discussions as well as comments to the aforementioned.
 
@@ -41,5 +41,5 @@ Add said copyright notice to the comment header of files in this repository.
 Use following approach in Markdown files:
 
 ```
-[Copyright © 2024 Sven Lange-Last]: #
+[Copyright © <first year>, <last year> Sven Lange-Last]: #
 ```
